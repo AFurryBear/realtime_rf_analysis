@@ -38,3 +38,30 @@ def get_colors(cm,values):
     colors = cm(norm(values))
 
     return colors
+
+def plot_multiple_rawdata(axs, time_axis, data_arr, average_data, fs, linecolor, chan_id, offset=30, time_label=['-.5','0/.5','1']):
+    yoffset_mat = offset * np.arange(1,len(data_arr)+1)[:,np.newaxis] * np.ones(data_arr.shape)
+    data_arr = data_arr + yoffset_mat
+    time_axis_new = np.tile(time_axis,data_arr.shape[0]).reshape(data_arr.shape[0], len(time_axis))
+    data_arr[:,0:5] = np.nan
+    time_axis_new[:,0:5] = np.nan
+    axs.plot(time_axis_new.T, data_arr.T, linewidth=.2, c='black')
+    
+    axs.plot(time_axis, average_data[0], linewidth=.2, c=linecolor)
+    axs.plot(time_axis, average_data[1]-offset, linewidth=.2, c=linecolor)
+    
+    axs.axvline(x=0,linestyle='--',c='lightgrey')
+    axs.fill_betweenx([-1.5*offset,offset*(len(data_arr)+1.2)],0,np.max(time_axis),color="lightgrey", alpha=.3)
+    
+    
+    # Remove x and y ticks
+    axs.set_xticks([time_axis[0],np.percentile(time_axis,50), time_axis[-1]],time_label)
+    axs.set_yticks([])
+    axs.text(time_axis[0], offset*(len(data_arr)+1.4), 'chan:%d,%d'%(chan_id[0],chan_id[1]))
+    # Optional: Remove spines
+    axs.spines['top'].set_visible(False)
+    axs.spines['right'].set_visible(False)
+    axs.spines['left'].set_visible(False)
+    axs.spines['bottom'].set_visible(False)
+    
+    return axs, data_arr

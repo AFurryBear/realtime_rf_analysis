@@ -161,3 +161,17 @@ def get_spkTrain(spike_times, bin_size=100):
     # Use numpy.histogram to count spikes in each bin
     spike_counts, _ = np.histogram(spike_times, bins=bins)
     return spike_counts, bin_size
+
+
+def prepare_rawData_condition(x, onset_time, offset_time, fs):
+    
+    time_series = np.linspace(onset_time, offset_time, 
+                              int((offset_time-onset_time).mean()*fs), endpoint=True).T # Nsession*Ntimepoint
+    time_index = (time_series*fs).astype(int) 
+    return x[:,time_index] # Nchannel*Nsession*Ntimepoint
+
+
+def find_stimModulated_channel(data_stim, data_base, num_ch=2):
+    coi = np.argsort((data_stim.std(axis=2) - data_base.std(axis=2)).mean(axis=1))
+    return coi[-num_ch:]
+    
