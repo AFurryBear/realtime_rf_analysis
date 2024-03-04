@@ -35,7 +35,7 @@ stimuli_duration = args.stim_duration
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from toolbox_ap_process import filter_signal
+from toolbox_ap_process import filter_signal, process_ttl_data
 from toolbox_load_data import load_ephyData, load_ttlData
 
 foldername = os.path.split(data_path)[1]
@@ -87,7 +87,7 @@ plt.savefig(data_path+'/'+'nSpk_with_time.png')
 
 
 from toolbox_plot import get_colors,get_cm, plot_multiple_rawdata,plot_nSpk_contrast
-from toolbox_ap_process import prepare_rawData_condition, find_stimModulated_channel
+from toolbox_ap_process import prepare_rawData_condition, find_stimModulated_channel, prepare_nSpk_condition
 
 nSpk_pos_0_norm, nSpk_pos_1_norm = prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size)
 
