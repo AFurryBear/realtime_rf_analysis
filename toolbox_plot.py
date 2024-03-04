@@ -42,7 +42,7 @@ def get_colors(cm,values):
 def plot_nSpk_contrast(axs, time_axis, data, stim_on):
     d = (data - data.mean(axis=0))/data.std(axis=0)
     axs.plot(time_axis.T,d,c='black')
-    axs.fill_betweenx([-3,3],stim_on[0],stim_on[1],color="lightgrey", alpha=.3)
+    axs.fill_betweenx([-3.5,3.5],stim_on[0],stim_on[1],color="lightgrey", alpha=.3)
     return axs
 
 

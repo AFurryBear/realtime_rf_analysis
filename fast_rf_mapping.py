@@ -69,10 +69,16 @@ selectData_ap,sRate_ap,meta_ap = load_ephyData(ap_path, tStart, tEnd, chanList)
 xf = filter_signal(selectData_ap, sRate_ap, 500, 4000)
 
 from toolbox_ap_process import detect_spikes
+from toolbox_plot import plot_peaks
 ## detect spikes from data
 (s, t), threshold, s_all, nSpk = detect_spikes(xf, sRate_ap, N=4,lockout=10)
 print('from chan %03d to %03d: found %d spikes with th %.2f'%(chanList[0],chanList[-1],len(s_all),threshold))
-
+fig, axes = plt.subplots(nrows=4,ncols=1,sharey = True, sharex=True, figsize = (7,8))
+time_series = np.arange(3.2, 3.4, step=1/sRate_ap)
+peak_times = t[np.where((t<(3.4*1000))&(t>(3.2*1000)))[0]]/1000
+for i,chanid in enumerate(np.linspace(0,len(chanList)-1,4)):
+    axes[i] = plot_peaks(axes[i], time_series,  xf[int(chanid)], sRate_ap, peak_times, threshold)
+plt.savefig(data_path+'/'+'detected_spks_Data_timeframe_uV.png')
 
 from toolbox_ap_process import get_spkTrain
 ## plot spike trains
