@@ -194,7 +194,7 @@ def process_ttl_data(ttl_data, sRate_ttl, stimuli_duration, T_before_onset=3, T_
     return tStimOnset, tStimOffset, tStart, tEnd
 
 
-def prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size):
+def prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size, nRepeat, num_pos):
     nSpk_ONset=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))
     nSpk_OFFset0=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))
     nSpk_OFFset1=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))

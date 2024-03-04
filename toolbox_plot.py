@@ -46,7 +46,7 @@ def plot_nSpk_contrast(axs, time_axis, data, stim_on):
     return axs
 
 
-def plot_multiple_rawdata(axs, time_axis, data_arr, average_data, fs, linecolor, chan_id, offset=30, stim_tLabel=[0,1]):
+def plot_multiple_rawdata(axs, time_axis, data_arr, average_data, fs, linecolor, linevalue, chan_id, offset=30, stim_tLabel=[0,1]):
     yoffset_mat = offset * np.arange(1,len(data_arr)+1)[:,np.newaxis] * np.ones(data_arr.shape)
     data_arr = data_arr + yoffset_mat
     time_axis_new = np.tile(time_axis,data_arr.shape[0]).reshape(data_arr.shape[0], len(time_axis))
@@ -63,6 +63,7 @@ def plot_multiple_rawdata(axs, time_axis, data_arr, average_data, fs, linecolor,
     # Remove x and y ticks
     axs.set_yticks([])
     axs.text(time_axis[0], offset*(len(data_arr)+1.4), 'chan:%d,%d'%(chan_id[0],chan_id[1]))
+    axs.text(time_axis[0], offset*(len(data_arr)+2), 'diff:%.3f'%(linevalue))
     # Optional: Remove spines
     axs.spines['top'].set_visible(False)
     axs.spines['right'].set_visible(False)
