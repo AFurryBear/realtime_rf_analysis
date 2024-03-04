@@ -175,3 +175,42 @@ def find_stimModulated_channel(data_stim, data_base, num_ch=2):
     coi = np.argsort((data_stim.std(axis=2) - data_base.std(axis=2)).mean(axis=1))
     return coi[-num_ch:]
     
+
+def process_ttl_data(ttl_data, sRate_ttl, stimuli_duration, T_before_onset=3, T_after_offset=3):
+    ttl_data = np.where(ttl_data>20000,30000,0)# ugly way to denoise the frame
+
+    stimuli_ontid = np.where(np.diff(ttl_data)==30000)[0]+1
+    stimuli_offtid = stimuli_ontid+sRate_ttl*stimuli_duration
+
+    tStart =  stimuli_ontid[0]/sRate_ttl - T_before_onset
+    tEnd = stimuli_offtid[-1]/sRate_ttl + T_after_offset
+
+    crop_offset = stimuli_ontid[0] - int(sRate_ttl)*T_before_onset
+    tID_stim_on = (stimuli_ontid - crop_offset).astype(int)
+    tID_stim_off = (stimuli_offtid - crop_offset).astype(int)
+
+    tStimOnset = tID_stim_on/int(sRate_ttl)
+    tStimOffset = tID_stim_off/int(sRate_ttl)
+    return tStimOnset, tStimOffset, tStart, tEnd
+
+
+def prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size):
+    nSpk_ONset=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))
+    nSpk_OFFset0=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))
+    nSpk_OFFset1=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))
+
+    for i in range(len(tStimOnset)):
+        nSpk_ONset[i] = spike_counts[int(tStimOnset[i]*1000*stimuli_duration/bin_size):int(tStimOffset[i]*1000*stimuli_duration/bin_size)]
+        nSpk_OFFset0[i] = spike_counts[int((tStimOnset[i]-stimuli_duration)*1000*stimuli_duration/bin_size):int(tStimOnset[i]*1000*stimuli_duration/bin_size)]
+        nSpk_OFFset1[i] = spike_counts[int(tStimOffset[i]*1000*stimuli_duration/bin_size):int((tStimOffset[i]+stimuli_duration)*1000*stimuli_duration/bin_size)]
+
+    nSpk_ONset_pos = nSpk_ONset.reshape(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
+    nSpk_OFFset0_pos = nSpk_OFFset0.reshape(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
+    nSpk_OFFset1_pos = nSpk_OFFset1.reshape(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
+
+    nSpk_pos_0 = np.concatenate([nSpk_OFFset0_pos, nSpk_ONset_pos],axis=2)
+    nSpk_pos_1 = np.concatenate([nSpk_ONset_pos, nSpk_OFFset1_pos],axis=2)
+
+    nSpk_pos_0_norm = (nSpk_pos_0 - nSpk_pos_0.mean(axis=2)[:,:,np.newaxis])
+    nSpk_pos_1_norm = (nSpk_pos_1 - nSpk_pos_1.mean(axis=2)[:,:,np.newaxis])
+    return nSpk_pos_0_norm, nSpk_pos_1_norm

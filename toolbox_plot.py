@@ -39,7 +39,14 @@ def get_colors(cm,values):
 
     return colors
 
-def plot_multiple_rawdata(axs, time_axis, data_arr, average_data, fs, linecolor, chan_id, offset=30, time_label=['-.5','0/.5','1']):
+def plot_nSpk_contrast(axs, time_axis, data, stim_on):
+    d = (data - data.mean(axis=0))/data.std(axis=0)
+    axs.plot(time_axis.T,d,c='black')
+    axs.fill_betweenx([-3,3],stim_on[0],stim_on[1],color="lightgrey", alpha=.3)
+    return axs
+
+
+def plot_multiple_rawdata(axs, time_axis, data_arr, average_data, fs, linecolor, chan_id, offset=30, stim_tLabel=[0,1]):
     yoffset_mat = offset * np.arange(1,len(data_arr)+1)[:,np.newaxis] * np.ones(data_arr.shape)
     data_arr = data_arr + yoffset_mat
     time_axis_new = np.tile(time_axis,data_arr.shape[0]).reshape(data_arr.shape[0], len(time_axis))
@@ -51,11 +58,9 @@ def plot_multiple_rawdata(axs, time_axis, data_arr, average_data, fs, linecolor,
     axs.plot(time_axis, average_data[1]-offset, linewidth=.2, c=linecolor)
     
     axs.axvline(x=0,linestyle='--',c='lightgrey')
-    axs.fill_betweenx([-1.5*offset,offset*(len(data_arr)+1.2)],0,np.max(time_axis),color="lightgrey", alpha=.3)
-    
+    axs.fill_betweenx([-1.5*offset,offset*(len(data_arr)+1.2)],stim_tLabel[0],stim_tLabel[1],color="lightgrey", alpha=.3)
     
     # Remove x and y ticks
-    axs.set_xticks([time_axis[0],np.percentile(time_axis,50), time_axis[-1]],time_label)
     axs.set_yticks([])
     axs.text(time_axis[0], offset*(len(data_arr)+1.4), 'chan:%d,%d'%(chan_id[0],chan_id[1]))
     # Optional: Remove spines
