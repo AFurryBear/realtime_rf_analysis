@@ -42,7 +42,7 @@ def get_colors(cm,values):
 def plot_nSpk_contrast(axs, time_axis, data, stim_on):
     d = (data - data.mean(axis=0))/data.std(axis=0)
     axs.plot(time_axis.T,d,c='black')
-    axs.fill_betweenx([-3.5,3.5],stim_on[0],stim_on[1],color="lightgrey", alpha=.3)
+    axs.fill_betweenx([-3.5,3.5],stim_on[0],stim_on[1],color="lightgrey", alpha=.6)
     return axs
 
 
@@ -58,7 +58,7 @@ def plot_multiple_rawdata(axs, time_axis, data_arr, average_data, fs, linecolor,
     axs.plot(time_axis, average_data[1]-offset, linewidth=.2, c=linecolor)
     
     axs.axvline(x=0,linestyle='--',c='lightgrey')
-    axs.fill_betweenx([-1.5*offset,offset*(len(data_arr)+1.2)],stim_tLabel[0],stim_tLabel[1],color="lightgrey", alpha=.3)
+    axs.fill_betweenx([-1.5*offset,offset*(len(data_arr)+1.2)],stim_tLabel[0],stim_tLabel[1],color="lightgrey", alpha=.6)
     
     # Remove x and y ticks
     axs.set_yticks([])
