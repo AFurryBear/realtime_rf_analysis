@@ -176,7 +176,7 @@ def find_stimModulated_channel(data_stim, data_base, num_ch=2):
     return coi[-num_ch:]
     
 
-def process_ttl_data(ttl_data, sRate_ttl, stimuli_duration, T_before_onset=3, T_after_offset=3):
+def process_ttl_data(ttl_data, sRate_ttl, stimuli_duration, T_before_onset=5, T_after_offset=5):
     ttl_data = np.where(ttl_data>20000,30000,0)# ugly way to denoise the frame
 
     stimuli_ontid = np.where(np.diff(ttl_data)==30000)[0]+1
@@ -195,14 +195,15 @@ def process_ttl_data(ttl_data, sRate_ttl, stimuli_duration, T_before_onset=3, T_
 
 
 def prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size, nRepeat, num_pos):
-    nSpk_ONset=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))
-    nSpk_OFFset0=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))
-    nSpk_OFFset1=np.zeros((len(tStimOnset),int(1000*stimuli_duration/bin_size)))
+    condition_length = int(1000*stimuli_duration/bin_size)
+    nSpk_ONset=np.zeros((len(tStimOnset),condition_length))
+    nSpk_OFFset0=np.zeros((len(tStimOnset),condition_length))
+    nSpk_OFFset1=np.zeros((len(tStimOnset),condition_length))
 
     for i in range(len(tStimOnset)):
-        nSpk_ONset[i] = spike_counts[int(tStimOnset[i]*1000*stimuli_duration/bin_size):int(tStimOffset[i]*1000*stimuli_duration/bin_size)]
-        nSpk_OFFset0[i] = spike_counts[int((tStimOnset[i]-stimuli_duration)*1000*stimuli_duration/bin_size):int(tStimOnset[i]*1000*stimuli_duration/bin_size)]
-        nSpk_OFFset1[i] = spike_counts[int(tStimOffset[i]*1000*stimuli_duration/bin_size):int((tStimOffset[i]+stimuli_duration)*1000*stimuli_duration/bin_size)]
+        nSpk_ONset[i] = spike_counts[int(tStimOnset[i]*1000/bin_size):int((tStimOnset[i])*1000/bin_size)+condition_length]
+        nSpk_OFFset0[i] = spike_counts[int(tStimOnset[i]*1000/bin_size)-condition_length:int(tStimOnset[i]*1000/bin_size)]
+        nSpk_OFFset1[i] = spike_counts[int(tStimOffset[i]*1000/bin_size):int(tStimOffset[i]*1000/bin_size)+condition_length]
 
     nSpk_ONset_pos = nSpk_ONset.reshape(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
     nSpk_OFFset0_pos = nSpk_OFFset0.reshape(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))

@@ -12,7 +12,7 @@ parser.add_argument('--end_chan', type=int, help='end index of coi')
 parser.add_argument('--ttl_chan', type=int, help='ttl channel index')
 parser.add_argument('--channel1', type=int, default=np.nan, help='channel to be plotted')
 parser.add_argument('--channel2', type=int, default=np.nan, help='channel to be plotted')
-parser.add_argument('--stim_duration', type=int, default=1, help='stimuli_duration')
+parser.add_argument('--stim_duration', type=float, default=1, help='stimuli_duration')
 
 # Parse the arguments
 args = parser.parse_args()
@@ -25,13 +25,6 @@ end_chan = args.end_chan
 ttl_chan = args.ttl_chan
 coi = np.array([args.channel1, args.channel2])
 stimuli_duration = args.stim_duration
-
-# Example usage
-# print(f"File path: {data_path}")
-# print(f"Log level: {log_level}")
-# print(f"Output directory: {output_dir}")
-# print(f"Maximum count: {max_count}")
-# print(f"Verbose: {verbose}")
 
 import os
 import matplotlib.pyplot as plt
@@ -91,7 +84,7 @@ tStimOffset = tStimOffset.flatten()
 plt.figure(figsize=(15,3))
 for i in range(len(tStimOnset)):
     plt.fill_betweenx([0,np.max(spike_counts)], tStimOnset[i], tStimOffset[i], color="grey", alpha=1)
-plt.plot(time_series, spike_counts,color='black',linewidth=.5,alpha=.8)
+plt.plot(time_series, spike_counts,color='black',linewidth=.5,alpha=.6)
 plt.savefig(data_path+'/'+'nSpk_with_time.png')
 
 ## plot nSpk during stim_on and stim_off
