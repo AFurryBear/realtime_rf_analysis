@@ -44,7 +44,7 @@ import scipy.io as sio
 stim_mat = sio.loadmat(stim_path)
 
 nRepeat = stim_mat['sParams'].item()[5][0][0]
-stim_ID = stim_mat['sParams'].item()[-1].flatten()
+stim_ID = stim_mat['sParams'].item()[-2].flatten()
 num_pulse = len(stim_ID)
 num_pos = max(stim_ID)
 
