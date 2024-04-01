@@ -194,20 +194,26 @@ def process_ttl_data(ttl_data, sRate_ttl, stimuli_duration, T_before_onset=5, T_
     return tStimOnset, tStimOffset, tStart, tEnd
 
 
-def prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size, nRepeat, num_pos):
+def prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size, nRepeat, num_pos, stim_table):
     condition_length = int(1000*stimuli_duration/bin_size)
     nSpk_ONset=np.zeros((len(tStimOnset),condition_length))
     nSpk_OFFset0=np.zeros((len(tStimOnset),condition_length))
     nSpk_OFFset1=np.zeros((len(tStimOnset),condition_length))
+
+    nSpk_ONset_pos = np.zeros(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
+    nSpk_OFFset0_pos = np.zeros(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
+    nSpk_OFFset1_pos = np.zeros(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
 
     for i in range(len(tStimOnset)):
         nSpk_ONset[i] = spike_counts[int(tStimOnset[i]*1000/bin_size):int((tStimOnset[i])*1000/bin_size)+condition_length]
         nSpk_OFFset0[i] = spike_counts[int(tStimOnset[i]*1000/bin_size)-condition_length:int(tStimOnset[i]*1000/bin_size)]
         nSpk_OFFset1[i] = spike_counts[int(tStimOffset[i]*1000/bin_size):int(tStimOffset[i]*1000/bin_size)+condition_length]
 
-    nSpk_ONset_pos = nSpk_ONset.reshape(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
-    nSpk_OFFset0_pos = nSpk_OFFset0.reshape(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
-    nSpk_OFFset1_pos = nSpk_OFFset1.reshape(nRepeat,num_pos,int(stimuli_duration*1000/bin_size))
+    for i in range(num_pos):
+        stim_idx = stim_table.loc[stim_table.position_idx==i+1].index
+        nSpk_ONset_pos[:,i,:] = nSpk_ONset[stim_idx,:]
+        nSpk_OFFset0_pos[:,i,:] = nSpk_OFFset0[stim_idx,:]
+        nSpk_OFFset1_pos[:,i,:] = nSpk_OFFset1[stim_idx,:]
 
     nSpk_pos_0 = np.concatenate([nSpk_OFFset0_pos, nSpk_ONset_pos],axis=2)
     nSpk_pos_1 = np.concatenate([nSpk_ONset_pos, nSpk_OFFset1_pos],axis=2)

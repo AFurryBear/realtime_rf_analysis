@@ -41,23 +41,29 @@ ttl_path = data_path+'/'+foldername+'_t0.nidq.bin'
 
 ## load stim data
 import scipy.io as sio
-stim_mat = sio.loadmat(stim_path)
-
-nRepeat = stim_mat['sParams'].item()[5][0][0]
-stim_ID = stim_mat['sParams'].item()[-2].flatten()
+import pandas as pd 
+stim_mat = pd.read_csv(stim_path)
+nRepeat = int(len(stim_mat)/stim_mat.position_idx.max())
+stim_ID = stim_mat.position_idx.values
 num_pulse = len(stim_ID)
 num_pos = max(stim_ID)
-
+print(num_pos)
 ## load TTL file
 ttl_data, sRate_ttl, meta_ttl = load_ttlData(ttl_path,ttl_chan)
 tStimOnset, tStimOffset, tStart, tEnd = process_ttl_data(ttl_data, sRate_ttl, stimuli_duration)
 print('%d stimuli were shown in this recording.'%len(tStimOnset))
 if len(tStimOnset)!=num_pulse:
-    print('WARNING! #Pulse NOT MATCH!!')
-
+   print('WARNING! #Pulse NOT MATCH!!')
 ## load neuropixel data
 chanList = np.arange(start_chan,end_chan)
 selectData_ap,sRate_ap,meta_ap = load_ephyData(ap_path, tStart, tEnd, chanList)
+
+# tStimOnset = tStimOnset[-27:] - tStart
+# tStimOffset = tStimOnset + stimuli_duration
+stim_mat['ttlOnset'] = tStimOnset
+stim_mat['ttlOffset'] = tStimOffset
+print(tStimOffset)
+
 # filter neuropixel data
 xf = filter_signal(selectData_ap, sRate_ap, 500, 4000)
 
@@ -91,20 +97,24 @@ plt.savefig(data_path+'/'+'nSpk_with_time.png')
 from toolbox_plot import get_colors,get_cm, plot_multiple_rawdata,plot_nSpk_contrast
 from toolbox_ap_process import prepare_rawData_condition, find_stimModulated_channel, prepare_nSpk_condition
 
-nSpk_pos_0_norm, nSpk_pos_1_norm = prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size, nRepeat, num_pos)
-
+nSpk_pos_0_norm, nSpk_pos_1_norm = prepare_nSpk_condition(spike_counts, tStimOnset, tStimOffset,stimuli_duration, bin_size, nRepeat, num_pos, stim_mat)
+print(nSpk_pos_0_norm.shape)
 time_axis_nSpk = np.linspace(-stimuli_duration,stimuli_duration,int(2*stimuli_duration*1000/bin_size),endpoint=True)
 
 fig, axes = plt.subplots(nrows=3,ncols=3,sharey = True, sharex=True, figsize = (10,10))
 for i in range(num_pos):
     row, col = i%3,i//3    
+    stim_idx = stim_mat.loc[stim_mat.position_idx==i+1].index
+    temp_0[:,i,:] = nSpk_pos_0_norm[:,i,:]
     axes[row,col] = plot_nSpk_contrast(axes[row,col], time_axis_nSpk, nSpk_pos_0_norm[:,i,:].T, [0,stimuli_duration])
 plt.savefig(data_path+'/'+'nSpk_with_contrast0.png')
 plt.close('all')
 
 fig, axes = plt.subplots(nrows=3,ncols=3,sharey = True, sharex=True, figsize = (10,10))
 for i in range(num_pos):
-    row, col = i%3,i//3    
+    row, col = i%3,i//3
+    stim_idx = stim_mat.loc[stim_mat.position_idx==i+1].index
+    temp_1[:,i,:] = nSpk_pos_1_norm[:,i,:]
     axes[row,col] = plot_nSpk_contrast(axes[row,col], time_axis_nSpk, nSpk_pos_1_norm[:,i,:].T, [-stimuli_duration,0])
 plt.savefig(data_path+'/'+'nSpk_with_contrast1.png')
 plt.close('all')
@@ -120,9 +130,17 @@ cm = get_cm()
 colors_0 = get_colors(cm, diff_0)
 colors_1 = get_colors(cm, diff_1)
 
+tStimOnset_cond = np.zeros((nRepeat,num_pos))
+tStimOffset_cond = np.zeros((nRepeat,num_pos))
+
+for i in range(num_pos):
+    stim_idx = stim_mat.loc[stim_mat.position_idx==i+1].index
+    tStimOnset_cond[:,i] = tStimOnset[stim_idx]
+    tStimOffset_cond[:,i] = tStimOffset[stim_idx]
+
 ## plot raw data during stim_on and stim_off
-tStimOnset_cond = tStimOnset.reshape((3,9))
-tStimOffset_cond = tStimOffset.reshape((3,9))
+# tStimOnset_cond = tStimOnset.reshape((3,9))
+# tStimOffset_cond = tStimOffset.reshape((3,9))
 time_axis = np.arange(-stimuli_duration,stimuli_duration,step=1/sRate_ap)
 
 fig, axes = plt.subplots(nrows=3,ncols=3,sharey = True, sharex=True, figsize = (10,10))
@@ -144,7 +162,7 @@ plt.savefig(data_path+'/'+'rawData_with_contrast0.png')
 plt.close('all')
 
 
-fig, axes = plt.subplots(nrows=3,ncols=3,sharey = True, sharex=True, figsize = (10,10))
+fig, axes = plt.subplots(nrows=3,ncols=3,sharey =True, sharex=True, figsize = (10,10))
 for i in range(tStimOnset_cond.shape[1]):
     start_time = tStimOffset_cond[:,i] - stimuli_duration
     stop_time = tStimOffset_cond[:,i] + stimuli_duration
